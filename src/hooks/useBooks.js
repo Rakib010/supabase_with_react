@@ -8,6 +8,19 @@ export function useBooks() {
   const [pageSize] = useState(6)
   const [totalCount, setTotalCount] = useState(0)
 
+  async function getCurrentUserId() {
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser()
+
+    if (error || !user) {
+      return null
+    }
+
+    return user.id
+  }
+
   // GET with search + pagination
   async function getBooks(options = {}) {
     const currentPage = options.page ?? page
@@ -42,12 +55,10 @@ export function useBooks() {
     return data ?? []
   }
 
-  // SEARCH — page 1 থেকে নতুন query দিয়ে fetch
   async function searchBooks(query) {
     await getBooks({ page: 1, search: query })
   }
 
-  // PAGINATION
   async function goToPage(nextPage) {
     if (nextPage < 1) return
     await getBooks({ page: nextPage })
@@ -66,18 +77,28 @@ export function useBooks() {
     }
   }
 
-  // CREATE
+  // CREATE — RLS: auth.uid() = user_id
   async function addBook(bookData) {
+    const userId = await getCurrentUserId()
+
+    if (!userId) {
+      console.error('Error adding book: user not logged in')
+      alert('Please login first to add a book.')
+      return null
+    }
+
     const newBook = {
       title: bookData.title,
       description: bookData.description,
       image: bookData.image,
+      user_id: userId,
     }
 
     const { error } = await supabase.from('tasks').insert([newBook])
 
     if (error) {
       console.error('Error adding book:', error)
+      alert(error.message)
       return null
     }
 
@@ -87,6 +108,13 @@ export function useBooks() {
 
   // UPDATE
   async function updateBook(id, bookData) {
+    const userId = await getCurrentUserId()
+
+    if (!userId) {
+      alert('Please login first to edit a book.')
+      return null
+    }
+
     const updatedBook = {
       title: bookData.title,
       description: bookData.description,
@@ -97,9 +125,11 @@ export function useBooks() {
       .from('tasks')
       .update(updatedBook)
       .eq('id', id)
+      .eq('user_id', userId)
 
     if (error) {
       console.error('Error updating book:', error)
+      alert(error.message)
       return null
     }
 
@@ -109,14 +139,25 @@ export function useBooks() {
 
   // DELETE
   async function deleteBook(id) {
-    const { error } = await supabase.from('tasks').delete().eq('id', id)
+    const userId = await getCurrentUserId()
 
-    if (error) {
-      console.error('Error deleting book:', error)
+    if (!userId) {
+      alert('Please login first to delete a book.')
       return null
     }
 
-    // last item delete করলে আগের page-এ যাও
+    const { error } = await supabase
+      .from('tasks')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId)
+
+    if (error) {
+      console.error('Error deleting book:', error)
+      alert(error.message)
+      return null
+    }
+
     const remaining = totalCount - 1
     const totalPages = Math.max(1, Math.ceil(remaining / pageSize))
     const next = Math.min(page, totalPages)

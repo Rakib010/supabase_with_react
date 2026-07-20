@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npx supabase start && vite",
-    "supabase:start": "npx supabase start",
+    "dev": "set -a && . ./supabase/.env && set +a && npx supabase start && vite",
+    "supabase:start": "set -a && . ./supabase/.env && set +a && npx supabase start",
     "supabase:stop": "npx supabase stop",
     "build": "vite build",
     "lint": "eslint .",

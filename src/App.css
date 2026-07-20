@@ -123,6 +123,22 @@
   text-decoration: underline;
 }
 
+.link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--primary);
+  font-weight: 500;
+  font-size: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.login-card strong {
+  color: var(--text-h);
+  word-break: break-all;
+}
+
 /* Form elements */
 label {
   display: flex;
@@ -157,6 +173,12 @@ textarea {
 
 .form-error {
   color: var(--danger);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.form-success {
+  color: var(--success);
   font-size: 0.85rem;
   margin: 0;
 }
