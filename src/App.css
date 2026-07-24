@@ -294,6 +294,31 @@ textarea {
 .book-count {
   font-size: 0.9rem;
   color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.realtime-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--border);
+  color: var(--text);
+}
+
+.realtime-badge.realtime-subscribed {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--success);
+}
+
+.realtime-badge.realtime-channel_error,
+.realtime-badge.realtime-timed_out,
+.realtime-badge.realtime-closed {
+  background: var(--danger-light);
+  color: var(--danger);
 }
 
 .toolbar {
@@ -468,6 +493,27 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.image-preview {
+  width: 100%;
+  height: 160px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+input[type='file'] {
+  padding: 8px;
+  font-size: 0.9rem;
 }
 
 @media (max-width: 640px) {

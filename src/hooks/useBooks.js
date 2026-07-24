@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../utils/supabase'
+import { uploadBannerImage } from '../utils/storage'
 
 export function useBooks() {
   const [books, setBooks] = useState([])
@@ -7,6 +8,11 @@ export function useBooks() {
   const [page, setPage] = useState(1)
   const [pageSize] = useState(6)
   const [totalCount, setTotalCount] = useState(0)
+  const [realtimeStatus, setRealtimeStatus] = useState('CONNECTING')
+
+  // Always read latest page/search inside realtime callback
+  const stateRef = useRef({ page, search })
+  stateRef.current = { page, search }
 
   async function getCurrentUserId() {
     const {
@@ -23,8 +29,8 @@ export function useBooks() {
 
   // GET with search + pagination
   async function getBooks(options = {}) {
-    const currentPage = options.page ?? page
-    const currentSearch = options.search ?? search
+    const currentPage = options.page ?? stateRef.current.page
+    const currentSearch = options.search ?? stateRef.current.search
 
     const from = (currentPage - 1) * pageSize
     const to = from + pageSize - 1
@@ -54,6 +60,34 @@ export function useBooks() {
 
     return data ?? []
   }
+
+  // Realtime channel — INSERT / UPDATE / DELETE on public.tasks
+  useEffect(() => {
+    const channel = supabase
+      .channel('tasks-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // INSERT | UPDATE | DELETE
+          schema: 'public',
+          table: 'tasks',
+        },
+        (payload) => {
+          console.log('Realtime:', payload.eventType, payload)
+          // Keep list in sync (pagination + search preserved via stateRef)
+          getBooks()
+        },
+      )
+      .subscribe((status) => {
+        console.log('Realtime channel status:', status)
+        setRealtimeStatus(status)
+      })
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function searchBooks(query) {
     await getBooks({ page: 1, search: query })
@@ -87,10 +121,22 @@ export function useBooks() {
       return null
     }
 
+    let imageUrl = null
+
+    if (bookData.imageFile) {
+      try {
+        imageUrl = await uploadBannerImage(bookData.imageFile)
+      } catch (err) {
+        console.error('Error uploading image:', err)
+        alert(err.message)
+        return null
+      }
+    }
+
     const newBook = {
       title: bookData.title,
       description: bookData.description,
-      image: bookData.image,
+      image: imageUrl,
       user_id: userId,
     }
 
@@ -115,10 +161,22 @@ export function useBooks() {
       return null
     }
 
+    let imageUrl = bookData.existingImage || null
+
+    if (bookData.imageFile) {
+      try {
+        imageUrl = await uploadBannerImage(bookData.imageFile)
+      } catch (err) {
+        console.error('Error uploading image:', err)
+        alert(err.message)
+        return null
+      }
+    }
+
     const updatedBook = {
       title: bookData.title,
       description: bookData.description,
-      image: bookData.image,
+      image: imageUrl,
     }
 
     const { error } = await supabase
@@ -171,6 +229,7 @@ export function useBooks() {
     page,
     pageSize,
     totalCount,
+    realtimeStatus,
     getBooks,
     searchBooks,
     goToPage,

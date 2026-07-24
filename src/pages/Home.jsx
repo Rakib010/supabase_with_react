@@ -11,6 +11,7 @@ export default function Home() {
     page,
     pageSize,
     totalCount,
+    realtimeStatus,
     getBooks,
     searchBooks,
     nextPage,
@@ -42,14 +43,18 @@ export default function Home() {
   }
 
   async function handleSave(bookData) {
+    let result = null
+
     if (editingBook) {
-      await updateBook(editingBook.id, bookData)
+      result = await updateBook(editingBook.id, bookData)
     } else {
-      await addBook(bookData)
+      result = await addBook(bookData)
     }
 
-    setShowForm(false)
-    setEditingBook(null)
+    if (result) {
+      setShowForm(false)
+      setEditingBook(null)
+    }
   }
 
   function handleCancelForm() {
@@ -73,6 +78,9 @@ export default function Home() {
             <h2>My Books</h2>
             <p className="book-count">
               {totalCount} {totalCount === 1 ? 'book' : 'books'} found
+              <span className={`realtime-badge realtime-${realtimeStatus.toLowerCase()}`}>
+                Live: {realtimeStatus}
+              </span>
             </p>
           </div>
           <button type="button" className="btn btn-primary" onClick={handleAddClick}>
