@@ -1,10 +1,11 @@
 # Learn Supabase with React
 
-এই প্রজেক্টে Supabase-এর মূল ফিচারগুলো React অ্যাপে প্র্যাকটিক্যালি ইমপ্লিমেন্ট করা হয়েছে।
+এই প্রজেক্টে Supabase-এর মূল ফিচারগুলো React অ্যাপে প্র্যাকটিক্যালি ইমপ্লিমেন্ট করা হয়েছে।  
+**Self-Hosted** হিসেবে **লোকাল** (`npx supabase start` + Docker) চালানো হয়েছে।
 
 ## এই প্রজেক্টে যা করা হয়েছে
 
-1. **Supabase Cloud বনাম Self-Hosted আর্কিটেকচার** এবং **Coolify** ব্যবহার করে **Hostinger VPS**-এ Supabase সেটআপ
+1. **Supabase Cloud বনাম Self-Hosted (Local)** আর্কিটেকচার বোঝা ও লোকাল সেটআপ
 2. **React** প্রজেক্ট কানেক্ট করে সম্পূর্ণ **CRUD** অপারেশন
 3. **Google SMTP** ব্যবহার করে সম্পূর্ণ **Authentication** সিস্টেম (Signup, email confirm, Login, Logout)
 4. **Row Level Security (RLS)** পলিসি দিয়ে ডাটাবেজ-লেভেল সিকিউরিটি
@@ -13,25 +14,16 @@
 
 ---
 
-## 1. Supabase Cloud vs Self-Hosted
+## 1. Supabase Cloud vs Self-Hosted (Local)
 
-| | Cloud (supabase.com) | Self-Hosted (VPS) |
-|--|----------------------|-------------------|
-| Setup | Dashboard থেকে project | Docker / Coolify দিয়ে নিজে হোস্ট |
-| Cost | Free tier + paid plans | VPS খরচ (যেমন Hostinger) |
-| Control | Limited | Full control (SMTP, DB, keys) |
-| এই প্রজেক্ট | Local CLI দিয়ে ডেভ | Production-এ Coolify + VPS ব্যবহার করা যায় |
+| | Cloud (supabase.com) | Self-Hosted Local (এই প্রজেক্ট) |
+|--|----------------------|----------------------------------|
+| Setup | Dashboard থেকে project | Docker + Supabase CLI |
+| Run | Hosted API URL | `npx supabase start` → `http://127.0.0.1:54321` |
+| Cost | Free tier + paid | লোকালে ফ্রি (নিজের মেশিন) |
+| Control | Limited | Full (`config.toml`, SMTP, DB) |
 
-### Coolify + Hostinger VPS-এ Self-Hosted Supabase (সংক্ষেপ)
-
-1. Hostinger VPS নিন → Docker install  
-2. Coolify install করুন ([coolify.io](https://coolify.io))  
-3. Coolify-তে Supabase (Docker Compose / one-click) ডিপ্লয়  
-4. Domain + SSL সেট করুন  
-5. Studio থেকে API URL ও anon/publishable key নিন  
-6. React `.env`-এ সেই URL/key বসান  
-
-লোকাল ডেভেলপমেন্টে এই রিপোতে **Supabase CLI** (`npx supabase start`) ব্যবহার করা হয়েছে — আর্কিটেকচার Cloud/Self-hosted-এর মতোই (Auth, DB, Storage, Realtime)।
+এই রিপোতে সব কিছু **লোকাল Self-Hosted** স্ট্যাক দিয়ে রান হয়েছে: Auth, DB, Storage, Realtime।
 
 ---
 
@@ -70,7 +62,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey)
 
 ---
 
-## 4. Local Supabase (ডেভ)
+## 4. Local Self-Hosted Supabase
 
 ```bash
 npx supabase init
@@ -114,8 +106,6 @@ SMTP_SENDER_NAME=BookLibrary
 1. Google Account → Security → 2-Step Verification ON  
 2. App passwords → Mail  
 3. 16-digit password → `SMTP_PASS`
-
-Self-hosted / Coolify-তেও Auth SMTP settings-এ একই Gmail SMTP ব্যবহার করা যায়।
 
 ---
 
@@ -162,7 +152,6 @@ npx supabase stop && npx supabase start
 উদাহরণ policy:
 
 ```sql
--- Insert: auth.uid() = user_id
 create policy "Users can insert own tasks"
 on public.tasks for insert
 to authenticated
@@ -211,18 +200,16 @@ npm install
 npm run dev
 ```
 
-`dev` script: `supabase/.env` load → Supabase start → Vite
+`dev` script: `supabase/.env` load → local Supabase start → Vite
 
 | Command | কাজ |
 |---------|-----|
-| `npm run dev` | Supabase + Vite |
+| `npm run dev` | Local Supabase + Vite |
 | `npm run supabase:start` | শুধু Supabase |
 | `npm run supabase:stop` | Supabase বন্ধ |
 | `npm run build` | Production build |
 
 App: http://localhost:5173
-
-Cloud বা Coolify VPS ব্যবহার করলে `.env`-এ শুধু production `VITE_SUPABASE_URL` ও key বদলালেই React অ্যাপ কানেক্ট হবে।
 
 ---
 
@@ -262,7 +249,6 @@ learn_supabase_with_react/
 ## Docs
 
 - [Supabase local development](https://supabase.com/docs/guides/cli/local-development)
-- [Self-hosting](https://supabase.com/docs/guides/self-hosting)
 - [Row Level Security](https://supabase.com/docs/guides/auth/row-level-security)
 - [Realtime](https://supabase.com/docs/guides/realtime)
 - [Storage](https://supabase.com/docs/guides/storage)
